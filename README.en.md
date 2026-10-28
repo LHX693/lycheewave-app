@@ -10,7 +10,7 @@ Local speech-to-text and meeting notes tool. Transcription runs on your machine 
 |---|---|---|
 | macOS Apple Silicon (M1/M2/M3/M4) | `LycheeWave-0.3.0-arm64.dmg` | Tested on an Apple Silicon Mac |
 | macOS Intel | `LycheeWave-0.3.0-x64.dmg` | Tested only under Rosetta on an Apple Silicon Mac |
-| Windows 10/11 x64 | `LycheeWave-0.3.0-win-x64-setup.exe` / `LycheeWave-0.3.0-win-x64.zip` | Not tested on real Windows |
+| Windows 10/11 x64 | `LycheeWave-0.3.1-win-x64-setup.exe` / `LycheeWave-0.3.1-win-x64.zip` | Not tested on real Windows |
 
 ## Interface language
 The UI is available in **简体中文 / English / 日本語**. It follows the system language by default (falling back to English) and can be switched instantly under **Settings → Interface language**; the tray menu, floating indicator, onboarding and macOS permission prompts are localized as well.
@@ -24,7 +24,7 @@ The UI is available in **简体中文 / English / 日本語**. It follows the sy
 4. Transcribing non-WAV audio/video files requires ffmpeg: `brew install ffmpeg`.
 
 ## Windows installation
-1. Run `LycheeWave-0.3.0-win-x64-setup.exe`, or unzip the zip and run `LycheeWave.exe` directly.
+1. Run `LycheeWave-0.3.1-win-x64-setup.exe`, or unzip the zip and run `LycheeWave.exe` directly.
 2. The installer is **not code-signed**, so SmartScreen will show "Windows protected your PC": click **More info → Run anyway**. Some antivirus software may flag it falsely.
 3. Default hotkey is `Ctrl + Shift + Space` (Alt+Space is reserved by Windows); change it in Settings. Auto-paste simulates `Ctrl+V` and needs no extra permission; it may not work in programs running as administrator.
 4. Meeting system audio uses Windows loopback recording; if unavailable, only the microphone is recorded.
