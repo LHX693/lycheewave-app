@@ -44,7 +44,8 @@ Step 'SHA-256 matches SHA256SUMS.txt' {
 # test media: jfk.wav reused for the 16 kHz + meeting paths; hostile file name restored here
 $media = "$env:RUNNER_TEMP\lwmedia"; New-Item -ItemType Directory -Force $media | Out-Null
 foreach ($n in 'jfk.wav', 'zh16k.wav', 'meeting16k.wav') { Copy-Item test/media/jfk.wav "$media/$n" }
-Copy-Item test/media/hostile.mp3 -LiteralPath "$media/" ; Rename-Item -LiteralPath "$media/hostile.mp3" -NewName '$(touch PWNED);-y `id`.mp3'
+Copy-Item -LiteralPath test/media/hostile.mp3 -Destination (Join-Path $media '$(touch PWNED);-y `id`.mp3')
+if (-not (Test-Path -LiteralPath (Join-Path $media '$(touch PWNED);-y `id`.mp3'))) { throw 'hostile test file not staged' }
 
 $setup = (Get-ChildItem $Rel -Filter '*setup.exe').FullName
 Step 'Silent install (NSIS /S)' {
