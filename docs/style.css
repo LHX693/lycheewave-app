@@ -41,3 +41,4 @@ h2{font-size:28px;letter-spacing:-.01em;margin:0 0 28px;font-weight:600}h3{font-
 @media (max-width:760px){.nav nav>a{display:none}.hero{padding-top:56px}.sec{padding-top:80px}
 .grid,.grid.three,.steps,.shots,.split{grid-template-columns:1fr}.grid article,.steps li{border-right:0;border-bottom:1px solid var(--line)}.grid article:last-child,.steps li:last-child{border-bottom:0}.help{flex-direction:column;align-items:start}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+[hidden]{display:none!important}
