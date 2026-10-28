@@ -1,0 +1,57 @@
+[
+  {
+    "test": "Windows version",
+    "ok": true,
+    "detail": "Windows Server 2025 Datacenter 24H2 build 26100.33650 (Microsoft Windows Server 2025 Datacenter)"
+  },
+  {
+    "test": "SHA-256 matches SHA256SUMS.txt",
+    "ok": true,
+    "detail": "LycheeWave-0.3.1-win-x64-setup.exe da41076b9acfe2fd49996732d3846148d5b66b2df5f27af458acf6c70aeb9628 OK\r\nLycheeWave-0.3.1-win-x64.zip 32148edecce6b8bb0c95fdd4b67063995b6845bac0c7e697f36e29e3b4385ac0 OK"
+  },
+  {
+    "test": "Silent install (NSIS /S)",
+    "ok": true,
+    "detail": "exit 0; dir C:\\Users\\runneradmin\\AppData\\Local\\Programs\\LycheeWave; uninstall: \"C:\\Users\\runneradmin\\AppData\\Local\\Programs\\LycheeWave\\Uninstall.exe\"; version 0.3.1; start menu: C:\\Users\\runneradmin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\LycheeWave.lnk"
+  },
+  {
+    "test": "Packaged self-test (installed)",
+    "ok": true,
+    "detail": "PASS bundled model present + SHA-256 matches pin — C:\\Users\\runneradmin\\AppData\\Local\\Programs\\LycheeWave\\resources\\models\\ggml-base-q5_1.bin (60 ms)\r\nPASS file transcription (ffmpeg path): $(touch PWNED);-y `id`.mp3 — 1 segs, 22 words: and so my fellow americans ask not what your country can do for you ask what you can do for your country (5319 ms)\r\nPASS file transcription (ffmpeg path): jfk.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (5212 ms)\r\nPASS file transcription (ffmpeg path): meeting16k.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (5040 ms)\r\nPASS file transcription (ffmpeg path): zh16k.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (4947 ms)\r\nPASS direct 16 kHz WAV → whisper (renderer-decoded path) — And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (4964 ms)\r\nPASS meeting path: PCM chunks → encodeWav → whisper → history → SRT/MD — 1 segs; SRT first line block: 1 | 00:00:00,000 --> 00:00:10,000 | And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country. (4960 ms)\r\nPASS hostile file name is not executed by a shell — ok, no PWNED file (4 ms)\r\nPASS page guard accepts own index.html, rejects others — file:///C:/Users/runneradmin/AppData/Local/Programs/LycheeWave/resources/app.asar/out/index.html (1 ms)\r\nPASS file:read rejects /etc/passwd — rejected: ENOENT: no such file or directory, lstat 'D:\\etc'\r\nPASS file:read rejects relative path — rejected: Invalid file path\r\nPASS file:read rejects ~/.ssh style non-media — rejected: ENOENT: no such file or directory, lstat 'C:\\Users\\runneradmin\\.zshrc'\r\nPASS model download rejects traversal name — rejected: Unknown model\r\nPASS settings rejects http:// AI endpoint — rejected: The AI endpoint must use HTTPS (except localhost)\r\nPASS settings: unknown keys/types dropped — {\"language\":\"zh\"} (1 ms)\r\nPASS API key encrypted at rest (safeStorage/Keychain) — stored as enc:v1:djEwH3o… (1 ms)\r\nFAIL data dir 0700 / files 0600 — dir 666, settings 666, history 666\r\nPASS paste: clipboard fallback + restore — Accessibility NOT granted → pasteText returned true, text left on clipboard (by design: \"ORIGINAL-CLIP\") (3131 ms)\r\nPASS no temp audio left behind — clean (0 ms)\r\nversion 0.3.1, packaged True, exit 1, 18/19 pass"
+  },
+  {
+    "test": "Bundled whisper-cli.exe transcribes jfk.wav",
+    "ok": true,
+    "detail": "And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
+  },
+  {
+    "test": "GUI launch + screenshot (zh-CN)",
+    "ok": true,
+    "detail": "running OK, window title 'LycheeWave', 31 colours sampled, D:\\a\\lycheewave-app\\lycheewave-app\\wt/screenshots/win-zh-CN.png"
+  },
+  {
+    "test": "GUI launch + screenshot (en)",
+    "ok": true,
+    "detail": "running OK, window title 'LycheeWave', 34 colours sampled, D:\\a\\lycheewave-app\\lycheewave-app\\wt/screenshots/win-en.png"
+  },
+  {
+    "test": "GUI launch + screenshot (ja)",
+    "ok": true,
+    "detail": "running OK, window title 'LycheeWave', 39 colours sampled, D:\\a\\lycheewave-app\\lycheewave-app\\wt/screenshots/win-ja.png"
+  },
+  {
+    "test": "GUI diagnostics (Chromium log, --disable-gpu)",
+    "ok": true,
+    "detail": "default: [5792:1028/141242.461:INFO:CONSOLE:1] \"The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.\", source: file:///C:/Users/runneradmin/AppData/Local/Programs/LycheeWave/resources/app.asar/out/index.html (1)\r\ndisable-gpu: [3668:1028/141300.521:INFO:CONSOLE:1] \"The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.\", source: file:///C:/Users/runneradmin/AppData/Local/Programs/LycheeWave/resources/app.asar/out/index.html (1)"
+  },
+  {
+    "test": "Portable zip: launch + self-test",
+    "ok": true,
+    "detail": "PASS bundled model present + SHA-256 matches pin — D:\\a\\_temp\\lwzip\\resources\\models\\ggml-base-q5_1.bin (56 ms)\r\nPASS file transcription (ffmpeg path): $(touch PWNED);-y `id`.mp3 — 1 segs, 22 words: and so my fellow americans ask not what your country can do for you ask what you can do for your country (5016 ms)\r\nPASS file transcription (ffmpeg path): jfk.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (4955 ms)\r\nPASS file transcription (ffmpeg path): meeting16k.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (5154 ms)\r\nPASS file transcription (ffmpeg path): zh16k.wav — 1 segs, 22 words: And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (4964 ms)\r\nPASS direct 16 kHz WAV → whisper (renderer-decoded path) — And so my fellow Americans ask not what your country can do for you, ask what you can do for your country. (4938 ms)\r\nPASS meeting path: PCM chunks → encodeWav → whisper → history → SRT/MD — 1 segs; SRT first line block: 1 | 00:00:00,000 --> 00:00:10,000 | And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country. (5004 ms)\r\nPASS hostile file name is not executed by a shell — ok, no PWNED file (4 ms)\r\nPASS page guard accepts own index.html, rejects others — file:///D:/a/_temp/lwzip/resources/app.asar/out/index.html (1 ms)\r\nPASS file:read rejects /etc/passwd — rejected: ENOENT: no such file or directory, lstat 'D:\\etc'\r\nPASS file:read rejects relative path — rejected: Invalid file path\r\nPASS file:read rejects ~/.ssh style non-media — rejected: ENOENT: no such file or directory, lstat 'C:\\Users\\runneradmin\\.zshrc'\r\nPASS model download rejects traversal name — rejected: Unknown model\r\nPASS settings rejects http:// AI endpoint — rejected: The AI endpoint must use HTTPS (except localhost)\r\nPASS settings: unknown keys/types dropped — {\"language\":\"zh\"} (0 ms)\r\nPASS API key encrypted at rest (safeStorage/Keychain) — stored as enc:v1:djEwwht… (2 ms)\r\nFAIL data dir 0700 / files 0600 — dir 666, settings 666, history 666\r\nPASS paste: clipboard fallback + restore — Accessibility NOT granted → pasteText returned true, text left on clipboard (by design: \"ORIGINAL-CLIP\") (841 ms)\r\nPASS no temp audio left behind — clean (0 ms)\r\nversion 0.3.1, packaged True, exit 1, 18/19 pass"
+  },
+  {
+    "test": "Silent uninstall + cleanup",
+    "ok": true,
+    "detail": "exit 0; program files, registry entry, shortcut removed; user data dir kept: True"
+  }
+]
