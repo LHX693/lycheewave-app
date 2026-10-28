@@ -1,5 +1,7 @@
 [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
+🌐 https://lhx693.github.io/lycheewave-app/
+
 # LycheeWave 荔枝波
 
 本地语音转文字与会议记录工具。转写在本机用 [whisper.cpp](https://github.com/ggml-org/whisper.cpp) 完成，不上传音频；AI 润色/摘要为可选功能，需自备 OpenAI 兼容接口和密钥。

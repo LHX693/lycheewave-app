@@ -1,5 +1,7 @@
 [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
+🌐 https://lhx693.github.io/lycheewave-app/
+
 # LycheeWave
 
 Local speech-to-text and meeting notes tool. Transcription runs on your machine with [whisper.cpp](https://github.com/ggml-org/whisper.cpp); audio is never uploaded. AI polishing/summaries are optional and require your own OpenAI-compatible endpoint and API key.

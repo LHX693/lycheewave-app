@@ -1,5 +1,7 @@
 [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
+🌐 https://lhx693.github.io/lycheewave-app/
+
 # LycheeWave
 
 ローカル音声文字起こし・議事録ツールです。文字起こしは [whisper.cpp](https://github.com/ggml-org/whisper.cpp) によりお使いのマシン上で行われ、音声はアップロードされません。AI による整形・要約はオプション機能で、OpenAI 互換のエンドポイントと API キーをご自身で用意する必要があります。
