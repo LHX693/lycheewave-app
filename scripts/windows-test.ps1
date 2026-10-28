@@ -15,7 +15,9 @@ function Shot($file) {
   $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
   $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
   $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-  $bmp.Save($file, [System.Drawing.Imaging.ImageFormat]::Png); $g.Dispose(); $bmp.Dispose()
+  $bmp.Save($file, [System.Drawing.Imaging.ImageFormat]::Png)
+  $seen = @{}; for ($x = 40; $x -lt [Math]::Min(1000, $b.Width); $x += 23) { for ($y = 80; $y -lt [Math]::Min(680, $b.Height); $y += 19) { $seen[$bmp.GetPixel($x, $y).ToArgb()] = 1 } }
+  $g.Dispose(); $bmp.Dispose(); return $seen.Count
 }
 function UninstEntry { Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object DisplayName -like 'LycheeWave*' }
 function SelfTest($exe, $tag) {
@@ -72,16 +74,16 @@ foreach ($lang in 'zh-CN', 'en', 'ja') {
     $s['uiLang'] = $lang; $s | ConvertTo-Json | Set-Content $f -Encoding utf8
     $p = Start-Process $exe -PassThru; Start-Sleep 15
     if ($p.HasExited) { throw "exited early: $($p.ExitCode)" }
-    $png = "$Out/screenshots/win-$lang.png"; Shot $png
+    $png = "$Out/screenshots/win-$lang.png"; $colors = Shot $png
     $title = (Get-Process -Id $p.Id).MainWindowTitle
     Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
-    "running OK, window title '$title', $png"
+    if ($colors -lt 8) { throw "window looks blank ($colors colours sampled)" }; "running OK, window title '$title', $colors colours sampled, $png"
   }
 }
 Step 'GUI diagnostics (Chromium log, --disable-gpu)' {
   foreach ($v in @(@{ n = 'default'; a = @('--enable-logging=stderr', '--v=0') }, @{ n = 'disable-gpu'; a = @('--enable-logging=stderr', '--v=0', '--disable-gpu') })) {
     $p = Start-Process $exe -ArgumentList $v.a -RedirectStandardError "$Out/gui-$($v.n).log" -RedirectStandardOutput "$Out/gui-$($v.n).out" -PassThru; Start-Sleep 15
-    Shot "$Out/screenshots/diag-$($v.n).png"; Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
+    $null = Shot "$Out/screenshots/diag-$($v.n).png"; Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
     "$($v.n): " + ((Get-Content "$Out/gui-$($v.n).log" -ErrorAction SilentlyContinue | Select-String -Pattern 'CONSOLE|ERROR|GPU|crash' | Select-Object -First 12) -join ' // ')
   }
 }
@@ -89,7 +91,7 @@ Step 'Portable zip: launch + self-test' {
   $z = "$env:RUNNER_TEMP\lwzip"; Expand-Archive (Get-ChildItem $Rel -Filter '*.zip').FullName $z -Force
   $zexe = Join-Path $z 'LycheeWave.exe'; $p = Start-Process $zexe -PassThru; Start-Sleep 12
   if ($p.HasExited) { throw "zip build exited early: $($p.ExitCode)" }
-  Shot "$Out/screenshots/win-portable.png"; Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
+  $c = Shot "$Out/screenshots/win-portable.png"; if ($c -lt 8) { throw "portable window looks blank" }; Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
   SelfTest $zexe 'portable'
 }
 Step 'Silent uninstall + cleanup' {
