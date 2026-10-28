@@ -6,6 +6,7 @@ import path from 'node:path';
 import { store, countWords, Entry, Settings, cleanEntryPatch, cleanSettingsPatch } from './store';
 import { transcribeWav, convertWithFfmpeg, joinSegments, listModels, downloadModel, whisperBin, Segment, privateTmp, cleanupTmp, checkMediaPath, isKnownModel, MODELS, MEDIA_EXT } from './whisper';
 import { runSelfTest } from './selftest';
+import { isPageUnder } from './pageguard';
 import { pasteText } from './paste';
 import { aiReady, polish, summarize } from './ai';
 import { t, setLang, getLang, resolveLang } from '../i18n';
@@ -212,7 +213,7 @@ function buildAppMenu() {
 }
 
 // Lock down every web contents: no navigation, no new windows, no webviews, only our own file:// pages.
-const isOwnPage = (u: string) => { try { const x = new URL(u); return x.protocol === 'file:' && path.resolve(decodeURIComponent(x.pathname)).startsWith(__dirname); } catch { return false; } };
+const isOwnPage = (u: string) => isPageUnder(__dirname, u);
 app.on('web-contents-created', (_e, wc) => {
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
   wc.on('will-navigate', (ev, url) => { if (!isOwnPage(url)) ev.preventDefault(); });

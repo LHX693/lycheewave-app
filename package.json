@@ -1,7 +1,7 @@
 {
   "name": "lycheewave",
   "productName": "LycheeWave",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "LycheeWave — local speech-to-text & meeting notes (zh-CN / en / ja)",
   "main": "out/main.js",
   "license": "MIT",

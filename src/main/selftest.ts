@@ -6,6 +6,8 @@ import path from 'node:path';
 import { store, countWords, cleanSettingsPatch } from './store';
 import { transcribeWav, convertWithFfmpeg, joinSegments, checkMediaPath, downloadModel, privateTmp, cleanupTmp, MODELS, modelPath } from './whisper';
 import { pasteText } from './paste';
+import { isPageUnder } from './pageguard';
+import { pathToFileURL } from 'node:url';
 import { encodeWav, toSrt, toMd } from '../renderer/audio';
 
 type R = { name: string; ok: boolean; detail: string };
@@ -54,6 +56,12 @@ export async function runSelfTest() {
     const f = path.join(dir, '$(touch PWNED);-y `id`.mp3');
     const wav = await convertWithFfmpeg(checkMediaPath(f)); fs.rmSync(wav, { force: true });
     if (fs.existsSync(path.join(dir, 'PWNED')) || fs.existsSync('PWNED')) throw new Error('command injected!'); return 'ok, no PWNED file';
+  });
+  await t('page guard accepts own index.html, rejects others', () => {
+    const own = pathToFileURL(path.join(__dirname, 'index.html')).href;
+    if (!isPageUnder(__dirname, own)) throw new Error('own page rejected: ' + own);
+    if (isPageUnder(__dirname, pathToFileURL(path.join(os.homedir(), 'x.html')).href) || isPageUnder(__dirname, 'https://example.com/')) throw new Error('foreign page accepted');
+    return own;
   });
   await expectThrow('file:read rejects /etc/passwd', () => checkMediaPath('/etc/passwd'));
   await expectThrow('file:read rejects relative path', () => checkMediaPath('../x.mp3'));

@@ -125,3 +125,17 @@ test('settings: uiLang whitelist', () => {
   assert.deepEqual(cleanSettingsPatch({ uiLang: 'ja', language: 'ja' }, []), { uiLang: 'ja', language: 'ja' });
   assert.deepEqual(cleanSettingsPatch({ uiLang: 'de' }, []), {}); assert.equal(defaults.uiLang, 'system');
 });
+
+import { isPageUnder } from '../src/main/pageguard';
+import nodePath from 'node:path';
+test('page guard: Windows file URLs', () => {
+  const w = nodePath.win32;
+  assert.equal(isPageUnder('C:\\Users\\a\\LycheeWave\\resources\\app.asar\\out', 'file:///C:/Users/a/LycheeWave/resources/app.asar/out/index.html', w), true);
+  assert.equal(isPageUnder('C:\\Users\\a\\LycheeWave\\resources\\app.asar\\out', 'file:///c:/users/a/lycheewave/resources/app.asar/out/indicator.html', w), true);
+  assert.equal(isPageUnder('C:\\Users\\a\\LycheeWave\\resources\\app.asar\\out', 'file:///C:/Users/a/LycheeWave/resources/app.asar/outside.html', w), false);
+  assert.equal(isPageUnder('C:\\app\\out', 'https://evil.example/', w), false);
+});
+test('page guard: POSIX file URLs', () => {
+  assert.equal(isPageUnder('/Applications/LW.app/out', 'file:///Applications/LW.app/out/index.html', nodePath.posix), true);
+  assert.equal(isPageUnder('/Applications/LW.app/out', 'file:///Applications/LW.app/out2/x.html', nodePath.posix), false);
+});
