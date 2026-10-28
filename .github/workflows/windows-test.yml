@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag whose Windows assets are tested
+        description: Release tag whose Windows assets are tested (draft releases allowed)
         default: v0.3.0
         required: true
   release:
@@ -11,20 +11,37 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
-    runs-on: windows-latest
-    timeout-minutes: 40
+  fetch:
+    # Only job with write scope: GitHub requires it to read *draft* release assets. It runs no repo code.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
       - name: Download release assets
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.event.release.tag_name }}
         run: |
-          New-Item -ItemType Directory -Force rel | Out-Null
-          gh release download $env:TAG -R $env:GITHUB_REPOSITORY -D rel -p '*win-x64*' -p 'SHA256SUMS.txt'
-          Get-ChildItem rel
+          mkdir rel
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D rel -p '*win-x64*' -p 'SHA256SUMS.txt'
+          ls -la rel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: rel
+          retention-days: 1
+  test:
+    needs: fetch
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: rel
       - name: Run Windows tests
         shell: pwsh
         run: ./scripts/windows-test.ps1 -Rel rel -Out wt
