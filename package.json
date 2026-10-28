@@ -1,0 +1,94 @@
+{
+  "name": "lycheewave",
+  "productName": "LycheeWave",
+  "version": "0.2.0",
+  "description": "LycheeWave 荔枝波 — 本地语音转文字与会议记录",
+  "main": "out/main.js",
+  "license": "MIT",
+  "author": "Miumiu Paw",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "start": "npm run build && electron .",
+    "pack:mac": "npm run build && electron-builder --mac dir --arm64",
+    "test": "node scripts/test.mjs",
+    "pack:mac:x64": "npm run build && electron-builder --mac dir --x64",
+    "pack:win": "npm run build && electron-builder --win dir zip --x64"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "electron": "^43.8.4",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.0"
+  },
+  "build": {
+    "appId": "app.lycheewave.desktop",
+    "productName": "LycheeWave",
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/bin",
+        "to": "bin"
+      },
+      {
+        "from": "vendor/models",
+        "to": "models"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "identity": null,
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "LycheeWave 需要使用麦克风来录制你的语音并转成文字。",
+        "NSAppleEventsUsageDescription": "LycheeWave 需要控制“System Events”来把转写好的文字粘贴到当前应用。",
+        "NSScreenCaptureUsageDescription": "LycheeWave 在会议记录时需要录制系统声音。",
+        "LSUIElement": false,
+        "NSCameraUsageDescription": "LycheeWave 不使用摄像头。",
+        "NSBluetoothAlwaysUsageDescription": "LycheeWave 不使用蓝牙。",
+        "NSBluetoothPeripheralUsageDescription": "LycheeWave 不使用蓝牙。",
+        "NSAudioCaptureUsageDescription": "LycheeWave 在会议记录时需要录制系统声音。"
+      }
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "artifactName": "LycheeWave-${version}-win-x64.${ext}",
+      "signAndEditExecutable": false
+    }
+  }
+}
