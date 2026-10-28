@@ -73,8 +73,9 @@ export async function decodeToWav(data: ArrayBuffer): Promise<{ wav: ArrayBuffer
   return { wav: encodeWav([floatToInt16(r.getChannelData(0))]), durationMs: audio.duration * 1000 };
 }
 
+import { t } from '../i18n';
 export interface Seg { from: number; to: number; text: string }
 const ts = (ms: number, sep: string) => { const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, s = Math.floor(ms / 1000) % 60, x = Math.floor(ms % 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}${sep}${String(x).padStart(3, '0')}`; };
 export const toSrt = (s: Seg[]) => s.map((x, i) => `${i + 1}\n${ts(x.from, ',')} --> ${ts(x.to, ',')}\n${x.text}\n`).join('\n');
-export const toMd = (title: string, s: Seg[], summary?: string) => `# ${title}\n\n${summary ? summary + '\n\n## 逐字稿\n\n' : ''}${s.map(x => `**[${ts(x.from, '.').slice(0, 8)}]** ${x.text}`).join('\n\n')}\n`;
+export const toMd = (title: string, s: Seg[], summary?: string) => `# ${title}\n\n${summary ? summary + '\n\n## ' + t('md.transcript') + '\n\n' : ''}${s.map(x => `**[${ts(x.from, '.').slice(0, 8)}]** ${x.text}`).join('\n\n')}\n`;
 export const clock = (ms: number) => ts(ms, '.').slice(0, 8);

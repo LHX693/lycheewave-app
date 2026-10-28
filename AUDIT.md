@@ -54,3 +54,9 @@ DMG：`~/Downloads/LycheeWave-0.1.3-arm64.dmg`，SHA-256 `f069c81619cc2719e5d39d
 - 自测：mac arm64 21/21；mac x64 21/21（Apple Silicon 上 Rosetta 运行，未在真 Intel Mac 测）；单元测试 16/16。
 - Windows：wine 下 whisper-cli.exe 转写正确、打包 exe 自测核心项通过（修复前构建）；未在真实 Windows 测试；未签名（SmartScreen 警告）；exe 图标未嵌入。
 - macOS 为 ad-hoc 签名，未公证（Gatekeeper 需右键打开）。
+
+## 0.3.0 补充（2026-10-28）
+- 界面多语言：简体中文 / English / 日本語（src/i18n），默认跟随系统语言、回退英文，设置中可即时切换并持久化；托盘/菜单/悬浮条/引导/错误提示/macOS 权限说明（InfoPlist.strings）均已本地化。
+- 单元测试 21/21（含三语言 key 一致、占位符一致、系统语言解析、uiLang 白名单）；typecheck 通过；npm audit 0 漏洞。
+- 打包自测（Apple 芯片 Mac）：arm64 21/21，x64（Rosetta）21/21；使用 `--use-mock-keychain` 运行，因为新的 ad-hoc 签名会触发钥匙串访问弹窗而阻塞无人值守测试——“API key 加密存储”一项因此是在模拟钥匙串上验证的。
+- Windows：wine 下打包 exe 自测 14/15，唯一失败为 POSIX 权限位检查（Windows 不适用）；未在真实 Windows 测试。

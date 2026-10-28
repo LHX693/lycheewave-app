@@ -6,6 +6,8 @@ import { joinSegments, checkMediaPath, downloadModel, modelPath, MODELS } from '
 import { buildChatRequest, chat } from '../src/main/ai';
 import { toSrt, toMd, clock, encodeWav } from '../src/renderer/audio';
 import { keyToAccel, hotkeyLabel } from '../src/renderer/hotkey';
+import { LOCALES, LANGS, resolveLang, setLang, t } from '../src/i18n';
+setLang('zh-CN');
 const E = (id: string, text: string) => ({ id, kind: 'dictation' as const, title: text.slice(0, 5), text, createdAt: 1, durationMs: 1000, words: countWords(text) });
 
 test('storage CRUD', () => {
@@ -94,4 +96,32 @@ test('AI chat against mocked server (success, error redaction, redirect blocked)
   await assert.rejects(chat({ ...s, aiBaseUrl: `http://localhost:${port}/fail` }, 'S', 'x'), (e: any) => /401/.test(e.message) && !e.message.includes('sk-abc'));
   await assert.rejects(chat({ ...s, aiBaseUrl: `http://localhost:${port}/redir` }, 'S', 'x'));
   srv.close();
+});
+
+test('i18n: all locales have identical keys and non-empty values', () => {
+  const base = Object.keys(LOCALES['zh-CN']).sort();
+  assert.ok(base.length > 100);
+  for (const l of LANGS) {
+    assert.deepEqual(Object.keys(LOCALES[l]).sort(), base, l + ' keys differ');
+    for (const k of base) if (!(l === 'ja' && k === 'home.hintA')) assert.ok((LOCALES[l] as any)[k].trim(), `${l}.${k} empty`); // ja word order puts the key first
+  }
+});
+test('i18n: placeholders match across locales', () => {
+  const ph = (s: string) => (s.match(/\{\w+\}/g) || []).sort().join();
+  for (const k of Object.keys(LOCALES.en) as (keyof typeof LOCALES.en)[]) for (const l of LANGS) assert.equal(ph(LOCALES[l][k]), ph(LOCALES.en[k]), `${l}.${k}`);
+});
+test('i18n: system language resolution and explicit choice', () => {
+  assert.equal(resolveLang(undefined, ['zh-Hans-CN']), 'zh-CN'); assert.equal(resolveLang(undefined, ['zh-TW']), 'zh-CN');
+  assert.equal(resolveLang(undefined, ['ja-JP']), 'ja'); assert.equal(resolveLang(undefined, ['en-US']), 'en');
+  assert.equal(resolveLang(undefined, ['fr-FR', 'ja']), 'en'); assert.equal(resolveLang(undefined, []), 'en');
+  assert.equal(resolveLang('ja', ['zh-CN']), 'ja'); assert.equal(resolveLang('xx', ['ja']), 'ja');
+});
+test('i18n: t() switches live and interpolates', () => {
+  setLang('en'); assert.equal(t('common.wordsN', { n: 3 }), '3 words'); assert.equal(hotkeyLabel('Alt+Space'), '⌥ Space');
+  setLang('ja'); assert.equal(t('nav.settings'), '設定'); assert.match(toMd('T', [{ from: 0, to: 1, text: 'y' }], 'S'), /## 文字起こし/);
+  setLang('zh-CN'); assert.equal(t('nav.settings'), '设置');
+});
+test('settings: uiLang whitelist', () => {
+  assert.deepEqual(cleanSettingsPatch({ uiLang: 'ja', language: 'ja' }, []), { uiLang: 'ja', language: 'ja' });
+  assert.deepEqual(cleanSettingsPatch({ uiLang: 'de' }, []), {}); assert.equal(defaults.uiLang, 'system');
 });

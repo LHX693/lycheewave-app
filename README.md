@@ -6,9 +6,12 @@
 
 | 平台 | 安装包 | 状态 |
 |---|---|---|
-| macOS Apple 芯片 (M1/M2/M3/M4) | `LycheeWave-0.2.0-arm64.dmg` | 已在 Apple 芯片 Mac 上实测 |
-| macOS Intel | `LycheeWave-0.2.0-x64.dmg` | 仅在 Apple 芯片 Mac 的 Rosetta 下测试 |
-| Windows 10/11 x64 | `LycheeWave-0.2.0-win-x64-setup.exe` / `LycheeWave-0.2.0-win-x64.zip` | 未在真实 Windows 上测试 |
+| macOS Apple 芯片 (M1/M2/M3/M4) | `LycheeWave-0.3.0-arm64.dmg` | 已在 Apple 芯片 Mac 上实测 |
+| macOS Intel | `LycheeWave-0.3.0-x64.dmg` | 仅在 Apple 芯片 Mac 的 Rosetta 下测试 |
+| Windows 10/11 x64 | `LycheeWave-0.3.0-win-x64-setup.exe` / `LycheeWave-0.3.0-win-x64.zip` | 未在真实 Windows 上测试 |
+
+## 界面语言
+界面支持 **简体中文 / English / 日本語**。默认跟随系统语言（不支持的语言回退为英文），可在「设置 → 界面语言」中即时切换并保存；托盘菜单、悬浮指示条、权限引导与 macOS 权限弹窗说明也会随之本地化。
 
 ## macOS 安装
 1. 打开 dmg（Apple 芯片选 arm64，Intel 选 x64），把 LycheeWave 拖到“应用程序”。
@@ -19,7 +22,7 @@
 4. 非 WAV 的音视频文件转写需要 ffmpeg：`brew install ffmpeg`。
 
 ## Windows 安装
-1. 运行 `LycheeWave-0.2.0-win-x64-setup.exe`，或解压 zip 后直接运行 `LycheeWave.exe`。
+1. 运行 `LycheeWave-0.3.0-win-x64-setup.exe`，或解压 zip 后直接运行 `LycheeWave.exe`。
 2. 安装包**没有代码签名**，SmartScreen 会提示“Windows 已保护你的电脑”：点 **更多信息 → 仍要运行**。部分杀毒软件可能误报。
 3. 默认快捷键 `Ctrl + Shift + 空格`（Windows 上 Alt+空格 被系统占用），可在设置中修改。自动粘贴通过模拟 `Ctrl+V` 实现，无需额外授权；对以管理员身份运行的程序可能无效。
 4. 会议记录的系统声音使用 Windows 回环录音；如不可用则只录麦克风。

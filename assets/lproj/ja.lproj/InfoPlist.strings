@@ -1,0 +1,7 @@
+"NSMicrophoneUsageDescription" = "LycheeWave はあなたの声を録音してテキストに変換するためにマイクを使用します。";
+"NSAppleEventsUsageDescription" = "LycheeWave は文字起こししたテキストを現在のアプリに貼り付けるために「System Events」を操作します。";
+"NSScreenCaptureUsageDescription" = "LycheeWave は議事録のためにシステム音声を録音します。";
+"NSAudioCaptureUsageDescription" = "LycheeWave は議事録のためにシステム音声を録音します。";
+"NSCameraUsageDescription" = "LycheeWave はカメラを使用しません。";
+"NSBluetoothAlwaysUsageDescription" = "LycheeWave は Bluetooth を使用しません。";
+"NSBluetoothPeripheralUsageDescription" = "LycheeWave は Bluetooth を使用しません。";

@@ -1,8 +1,8 @@
 {
   "name": "lycheewave",
   "productName": "LycheeWave",
-  "version": "0.2.0",
-  "description": "LycheeWave 荔枝波 — 本地语音转文字与会议记录",
+  "version": "0.3.0",
+  "description": "LycheeWave — local speech-to-text & meeting notes (zh-CN / en / ja)",
   "main": "out/main.js",
   "license": "MIT",
   "author": "Miumiu Paw",
@@ -51,15 +51,26 @@
       "identity": null,
       "hardenedRuntime": false,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "LycheeWave 需要使用麦克风来录制你的语音并转成文字。",
-        "NSAppleEventsUsageDescription": "LycheeWave 需要控制“System Events”来把转写好的文字粘贴到当前应用。",
-        "NSScreenCaptureUsageDescription": "LycheeWave 在会议记录时需要录制系统声音。",
+        "NSMicrophoneUsageDescription": "LycheeWave uses the microphone to record your voice and turn it into text.",
+        "NSAppleEventsUsageDescription": "LycheeWave controls “System Events” to paste transcribed text into the current app.",
+        "NSScreenCaptureUsageDescription": "LycheeWave records system audio for meeting notes.",
         "LSUIElement": false,
-        "NSCameraUsageDescription": "LycheeWave 不使用摄像头。",
-        "NSBluetoothAlwaysUsageDescription": "LycheeWave 不使用蓝牙。",
-        "NSBluetoothPeripheralUsageDescription": "LycheeWave 不使用蓝牙。",
-        "NSAudioCaptureUsageDescription": "LycheeWave 在会议记录时需要录制系统声音。"
-      }
+        "NSCameraUsageDescription": "LycheeWave does not use the camera.",
+        "NSBluetoothAlwaysUsageDescription": "LycheeWave does not use Bluetooth.",
+        "NSBluetoothPeripheralUsageDescription": "LycheeWave does not use Bluetooth.",
+        "NSAudioCaptureUsageDescription": "LycheeWave records system audio for meeting notes.",
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleAllowMixedLocalizations": true
+      },
+      "extraResources": [
+        {
+          "from": "assets/lproj",
+          "to": ".",
+          "filter": [
+            "**/*"
+          ]
+        }
+      ]
     },
     "electronFuses": {
       "runAsNode": false,

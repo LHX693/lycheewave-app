@@ -6,9 +6,12 @@
 
 | プラットフォーム | パッケージ | 状態 |
 |---|---|---|
-| macOS Apple シリコン (M1/M2/M3/M4) | `LycheeWave-0.2.0-arm64.dmg` | Apple シリコン Mac で実機テスト済み |
-| macOS Intel | `LycheeWave-0.2.0-x64.dmg` | Apple シリコン Mac の Rosetta 上でのみテスト |
-| Windows 10/11 x64 | `LycheeWave-0.2.0-win-x64-setup.exe` / `LycheeWave-0.2.0-win-x64.zip` | 実機の Windows では未テスト |
+| macOS Apple シリコン (M1/M2/M3/M4) | `LycheeWave-0.3.0-arm64.dmg` | Apple シリコン Mac で実機テスト済み |
+| macOS Intel | `LycheeWave-0.3.0-x64.dmg` | Apple シリコン Mac の Rosetta 上でのみテスト |
+| Windows 10/11 x64 | `LycheeWave-0.3.0-win-x64-setup.exe` / `LycheeWave-0.3.0-win-x64.zip` | 実機の Windows では未テスト |
+
+## 表示言語
+UI は **简体中文 / English / 日本語** に対応しています。既定ではシステム言語に従い（非対応の言語は英語）、**設定 → 表示言語** で即座に切り替えて保存できます。トレイメニュー、フローティングインジケーター、初回ガイド、macOS の権限ダイアログの説明文も各言語に対応しています。
 
 ## macOS へのインストール
 1. dmg を開き（Apple シリコンは arm64、Intel は x64）、LycheeWave を「アプリケーション」にドラッグします。
@@ -19,7 +22,7 @@
 4. WAV 以外の音声・動画ファイルの文字起こしには ffmpeg が必要です：`brew install ffmpeg`。
 
 ## Windows へのインストール
-1. `LycheeWave-0.2.0-win-x64-setup.exe` を実行するか、zip を展開して `LycheeWave.exe` を直接実行します。
+1. `LycheeWave-0.3.0-win-x64-setup.exe` を実行するか、zip を展開して `LycheeWave.exe` を直接実行します。
 2. インストーラーは**コード署名されていない**ため、SmartScreen が「Windows によって PC が保護されました」と表示します：**詳細情報 → 実行** をクリックしてください。一部のウイルス対策ソフトが誤検知する場合があります。
 3. 既定のショートカットは `Ctrl + Shift + Space`（Windows では Alt+Space がシステムに予約されています）で、設定で変更できます。自動ペーストは `Ctrl+V` のシミュレーションで行うため追加の権限は不要ですが、管理者として実行中のプログラムでは機能しない場合があります。
 4. 議事録のシステム音声は Windows のループバック録音を使用します。利用できない場合はマイクのみ録音します。

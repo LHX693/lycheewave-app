@@ -8,6 +8,7 @@ import { transcribeWav, convertWithFfmpeg, joinSegments, listModels, downloadMod
 import { runSelfTest } from './selftest';
 import { pasteText } from './paste';
 import { aiReady, polish, summarize } from './ai';
+import { t, setLang, getLang, resolveLang } from '../i18n';
 
 // Lets getDisplayMedia return system audio (ScreenCaptureKit loopback) on macOS.
 app.commandLine.appendSwitch('enable-features', 'MacLoopbackAudioForScreenShare,MacSckSystemAudioLoopbackOverride');
@@ -20,7 +21,14 @@ let busy = false;
 const out = (f: string) => path.join(__dirname, f);
 const KEY_MASK = '__lw_saved_key__';
 /** Settings as seen by the renderer: the API key itself never leaves the main process. */
-const publicSettings = (s: Settings) => ({ ...s, aiKey: s.aiKey ? KEY_MASK : '' });
+const publicSettings = (s: Settings) => ({ ...s, aiKey: s.aiKey ? KEY_MASK : '', effectiveLang: getLang() });
+const sysLangs = () => { try { const l = app.getPreferredSystemLanguages(); return l.length ? l : [app.getLocale()]; } catch { return [app.getLocale()]; } };
+function applyLang() {
+  const u = store.settings().uiLang;
+  setLang(resolveLang(u === 'system' ? undefined : u, sysLangs()));
+  if (tray) buildTrayMenu();
+  if (app.isPackaged) buildAppMenu();
+}
 const secureWeb = { contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, devTools: !app.isPackaged, spellcheck: false } as const;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -80,7 +88,7 @@ function registerHotkey(acc: string): boolean {
 
 function writeTemp(buf: unknown): string {
   const b = buf instanceof ArrayBuffer ? Buffer.from(buf) : ArrayBuffer.isView(buf) ? Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength) : null;
-  if (!b || b.length < 44 || b.length > 2 * 1024 ** 3 || b.toString('latin1', 0, 4) !== 'RIFF') throw new Error('无效的音频数据');
+  if (!b || b.length < 44 || b.length > 2 * 1024 ** 3 || b.toString('latin1', 0, 4) !== 'RIFF') throw new Error(t('err.badAudio'));
   const p = path.join(privateTmp(), 'lw-' + uid() + '.wav');
   fs.writeFileSync(p, b, { mode: 0o600 });
   return p;
@@ -98,16 +106,16 @@ ipcMain.handle('dictation:audio', async (_e, wavBuf: ArrayBuffer, durationMs: nu
     if (!Number.isFinite(durationMs)) durationMs = 0;
     if (durationMs < 300) { indicator?.hide(); return; }
     const raw = joinSegments(await runWhisper(wavBuf));
-    if (!raw) { indicatorState('error', '没有识别到语音'); setTimeout(() => indicator?.hide(), 1200); return; }
+    if (!raw) { indicatorState('error', t('ind.noSpeech')); setTimeout(() => indicator?.hide(), 1200); return; }
     let text = raw;
-    if (s.aiPolish && aiReady(s)) { indicatorState('working', 'AI 润色中'); try { text = await polish(s, raw) || raw; } catch (e) { console.warn(e); } }
+    if (s.aiPolish && aiReady(s)) { indicatorState('working', t('ind.polishing')); try { text = await polish(s, raw) || raw; } catch (e) { console.warn(e); } }
     indicator?.hide();
     let pasted = false;
     if (s.autoPaste) pasted = await pasteText(text, s.restoreClipboard);
     else { const { clipboard } = await import('electron'); clipboard.writeText(text); }
     const entry: Entry = { id: uid(), kind: 'dictation', title: text.slice(0, 40), text, raw: raw !== text ? raw : undefined, createdAt: Date.now(), durationMs, words: countWords(text) };
     store.add(entry); broadcast('history:changed');
-    if (s.autoPaste && !pasted) broadcast('toast', '文字已复制到剪贴板。授予“辅助功能”权限后才能自动粘贴。');
+    if (s.autoPaste && !pasted) broadcast('toast', t('toast.copiedNoAx'));
   } catch (e: any) {
     indicatorState('error', String(e.message || e).slice(0, 60)); setTimeout(() => indicator?.hide(), 2500);
     broadcast('toast', String(e.message || e));
@@ -122,11 +130,11 @@ ipcMain.handle('transcribe:ffmpeg', async (_e, file: unknown) => {
 });
 ipcMain.handle('file:read', (_e, p: unknown) => { const b = fs.readFileSync(checkMediaPath(p, 1024 ** 3)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); });
 ipcMain.handle('file:choose', async () => {
-  const r = await dialog.showOpenDialog(mainWin!, { properties: ['openFile'], filters: [{ name: '音频/视频', extensions: MEDIA_EXT }] });
+  const r = await dialog.showOpenDialog(mainWin!, { properties: ['openFile'], filters: [{ name: t('dlg.media'), extensions: MEDIA_EXT }] });
   return r.canceled ? null : r.filePaths[0];
 });
 ipcMain.handle('file:save', async (_e, name: unknown, content: unknown) => {
-  if (typeof name !== 'string' || typeof content !== 'string') throw new Error('参数无效');
+  if (typeof name !== 'string' || typeof content !== 'string') throw new Error(t('err.badArgs'));
   // Only a bare file name is used as the suggestion; the user picks the real location in the dialog.
   const safe = path.basename(name).replace(/[\x00-\x1f]/g, '').slice(0, 120) || 'LycheeWave.txt';
   const r = await dialog.showSaveDialog(mainWin!, { defaultPath: path.join(app.getPath('documents'), safe) });
@@ -137,16 +145,16 @@ ipcMain.handle('file:save', async (_e, name: unknown, content: unknown) => {
 ipcMain.handle('history:list', () => store.history());
 ipcMain.handle('history:add', (_e, raw: unknown) => {
   const e = cleanEntryPatch(raw);
-  if (!e.kind || typeof e.text !== 'string') throw new Error('参数无效');
+  if (!e.kind || typeof e.text !== 'string') throw new Error(t('err.badArgs'));
   const entry: Entry = { title: '', durationMs: 0, ...e, kind: e.kind, text: e.text, id: uid(), createdAt: e.createdAt || Date.now(), words: countWords(e.text) };
   store.add(entry); broadcast('history:changed'); return entry;
 });
 ipcMain.handle('history:update', (_e, id: unknown, patch: unknown) => {
-  if (typeof id !== 'string') throw new Error('参数无效');
+  if (typeof id !== 'string') throw new Error(t('err.badArgs'));
   const p = cleanEntryPatch(patch); if (p.text !== undefined) p.words = countWords(p.text);
   store.update(id, p); broadcast('history:changed');
 });
-ipcMain.handle('history:delete', (_e, id: unknown) => { if (typeof id !== 'string') throw new Error('参数无效'); store.remove(id); broadcast('history:changed'); });
+ipcMain.handle('history:delete', (_e, id: unknown) => { if (typeof id !== 'string') throw new Error(t('err.badArgs')); store.remove(id); broadcast('history:changed'); });
 
 ipcMain.handle('settings:get', () => publicSettings(store.settings()));
 ipcMain.handle('settings:set', (_e, raw: unknown) => {
@@ -154,17 +162,18 @@ ipcMain.handle('settings:set', (_e, raw: unknown) => {
   if (patch.aiKey === KEY_MASK) delete patch.aiKey;
   const prev = store.settings();
   const s = store.saveSettings(patch);
-  if (patch.aiKey && !store_secretOK()) broadcast('toast', '系统钥匙串不可用：API 密钥只在本次运行中有效，未写入磁盘');
+  if (patch.aiKey && !store_secretOK()) broadcast('toast', t('toast.keychain'));
   let hotkeyOk = true;
   if (patch.hotkey && patch.hotkey !== prev.hotkey) { hotkeyOk = registerHotkey(s.hotkey); if (!hotkeyOk) { store.saveSettings({ hotkey: prev.hotkey }); registerHotkey(prev.hotkey); } }
+  if (patch.uiLang && patch.uiLang !== prev.uiLang) { applyLang(); broadcast('lang', getLang()); }
   if (patch.launchAtLogin !== undefined) app.setLoginItemSettings({ openAtLogin: s.launchAtLogin });
   return { settings: publicSettings(store.settings()), hotkeyOk };
 });
 ipcMain.handle('models:list', () => listModels());
 ipcMain.handle('models:download', async (_e, file: unknown) => {
-  if (!isKnownModel(file)) throw new Error('未知模型'); await downloadModel(file, p => broadcast('models:progress', file, p)); return listModels(); });
-ipcMain.handle('ai:summarize', (_e, text: unknown) => { if (typeof text !== 'string') throw new Error('参数无效'); const s = store.settings(); if (!aiReady(s)) throw new Error('请先在设置里填写 AI 接口地址和密钥'); return summarize(s, text); });
-ipcMain.handle('ai:polish', (_e, text: unknown) => { if (typeof text !== 'string') throw new Error('参数无效'); const s = store.settings(); if (!aiReady(s)) throw new Error('请先在设置里填写 AI 接口地址和密钥'); return polish(s, text); });
+  if (!isKnownModel(file)) throw new Error(t('err.unknownModel')); await downloadModel(file, p => broadcast('models:progress', file, p)); return listModels(); });
+ipcMain.handle('ai:summarize', (_e, text: unknown) => { if (typeof text !== 'string') throw new Error(t('err.badArgs')); const s = store.settings(); if (!aiReady(s)) throw new Error(t('err.needAi')); return summarize(s, text); });
+ipcMain.handle('ai:polish', (_e, text: unknown) => { if (typeof text !== 'string') throw new Error(t('err.badArgs')); const s = store.settings(); if (!aiReady(s)) throw new Error(t('err.needAi')); return polish(s, text); });
 
 ipcMain.handle('perm:status', () => ({
   platform: process.platform,
@@ -177,7 +186,7 @@ ipcMain.handle('perm:status', () => ({
 ipcMain.handle('perm:mic', () => process.platform === 'darwin' ? systemPreferences.askForMediaAccess('microphone') : true);
 ipcMain.handle('perm:accessibility', () => { if (process.platform === 'darwin') systemPreferences.isTrustedAccessibilityClient(true); return true; });
 const PANES = ['Privacy_Microphone', 'Privacy_Accessibility', 'Privacy_ScreenCapture'];
-ipcMain.handle('perm:open', (_e, pane: unknown) => { if (typeof pane !== 'string' || !PANES.includes(pane)) throw new Error('参数无效'); if (process.platform === 'win32') return shell.openExternal(pane === 'Privacy_Microphone' ? 'ms-settings:privacy-microphone' : 'ms-settings:privacy');
+ipcMain.handle('perm:open', (_e, pane: unknown) => { if (typeof pane !== 'string' || !PANES.includes(pane)) throw new Error(t('err.badArgs')); if (process.platform === 'win32') return shell.openExternal(pane === 'Privacy_Microphone' ? 'ms-settings:privacy-microphone' : 'ms-settings:privacy');
   if (process.platform !== 'darwin') return;
   return shell.openExternal('x-apple.systempreferences:com.apple.preference.security?' + pane); });
 ipcMain.handle('dictation:toggle', () => toggleDictation());
@@ -186,11 +195,19 @@ function createTray() {
   const img = nativeImage.createFromPath(out('icon.png')).resize({ width: 18, height: 18 });
   tray = new Tray(img);
   tray.setToolTip('LycheeWave');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: '开始/停止听写', click: toggleDictation },
-    { label: '打开 LycheeWave', click: () => mainWin?.show() },
+  buildTrayMenu();
+}
+function buildTrayMenu() {
+  tray?.setContextMenu(Menu.buildFromTemplate([
+    { label: t('tray.toggle'), click: toggleDictation },
+    { label: t('tray.open'), click: () => mainWin?.show() },
     { type: 'separator' },
-    { label: '退出', click: () => { (app as any).quitting = true; app.quit(); } },
+    { label: t('tray.quit'), click: () => { (app as any).quitting = true; app.quit(); } },
+  ]));
+}
+function buildAppMenu() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { role: 'appMenu' }, { role: 'editMenu' }, { label: t('menu.window'), submenu: [{ role: 'minimize' }, { role: 'close' }] },
   ]));
 }
 
@@ -210,9 +227,7 @@ app.on('second-instance', () => mainWin?.show());
 
 app.whenReady().then(async () => {
   if (SELFTEST) { await runSelfTest(); return; }
-  if (app.isPackaged) Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { role: 'appMenu' }, { role: 'editMenu' }, { label: '窗口', submenu: [{ role: 'minimize' }, { role: 'close' }] },
-  ]));
+  applyLang();
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(isOwnPage(wc.getURL()) && ['media', 'display-capture', 'clipboard-sanitized-write'].includes(perm)));
   session.defaultSession.setPermissionCheckHandler((wc, perm) => !!wc && isOwnPage(wc.getURL()) && ['media', 'display-capture', 'clipboard-sanitized-write'].includes(perm));
   store.saveSettings({}); // migrates a plaintext key to Keychain-backed encryption and tightens file modes
@@ -222,7 +237,7 @@ app.whenReady().then(async () => {
   });
   createMain(); createIndicator(); createTray();
   const s = store.settings();
-  if (!registerHotkey(s.hotkey)) mainWin?.webContents.once('did-finish-load', () => broadcast('toast', `快捷键 ${s.hotkey} 被占用，请在设置中更换`));
+  if (!registerHotkey(s.hotkey)) mainWin?.webContents.once('did-finish-load', () => broadcast('toast', t('toast.hotkeyBusy', { k: s.hotkey })));
 });
 app.on('activate', () => mainWin?.show());
 app.on('before-quit', () => { (app as any).quitting = true; });

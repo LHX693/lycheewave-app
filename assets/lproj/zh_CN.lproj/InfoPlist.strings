@@ -1,0 +1,7 @@
+"NSMicrophoneUsageDescription" = "LycheeWave 需要使用麦克风来录制你的语音并转成文字。";
+"NSAppleEventsUsageDescription" = "LycheeWave 需要控制“System Events”来把转写好的文字粘贴到当前应用。";
+"NSScreenCaptureUsageDescription" = "LycheeWave 在会议记录时需要录制系统声音。";
+"NSAudioCaptureUsageDescription" = "LycheeWave 在会议记录时需要录制系统声音。";
+"NSCameraUsageDescription" = "LycheeWave 不使用摄像头。";
+"NSBluetoothAlwaysUsageDescription" = "LycheeWave 不使用蓝牙。";
+"NSBluetoothPeripheralUsageDescription" = "LycheeWave 不使用蓝牙。";

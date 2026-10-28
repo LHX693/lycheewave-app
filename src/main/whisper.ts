@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import https from 'node:https';
 import crypto from 'node:crypto';
+import { t } from '../i18n';
 
 let tmpBase = '';
 /** Private 0700 temp dir for audio/JSON scratch files. */
@@ -18,12 +19,12 @@ export const isKnownModel = (f: unknown): f is string => typeof f === 'string' &
 export const MEDIA_EXT = ['mp3', 'm4a', 'wav', 'aac', 'flac', 'ogg', 'opus', 'mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', 'aiff', 'aif', 'caf'];
 /** Accepts only absolute paths to existing regular media files (blocks arbitrary reads and ffmpeg option/URL injection). */
 export function checkMediaPath(p: unknown, maxBytes = 4 * 1024 ** 3): string {
-  if (typeof p !== 'string' || !path.isAbsolute(p) || p.includes('\0')) throw new Error('无效的文件路径');
+  if (typeof p !== 'string' || !path.isAbsolute(p) || p.includes('\0')) throw new Error(t('err.badPath'));
   const r = fs.realpathSync(p);
   const ext = path.extname(r).slice(1).toLowerCase();
-  if (!MEDIA_EXT.includes(ext)) throw new Error('不支持的文件类型');
+  if (!MEDIA_EXT.includes(ext)) throw new Error(t('err.badType'));
   const st = fs.statSync(r);
-  if (!st.isFile() || st.size > maxBytes) throw new Error('文件不可读或过大');
+  if (!st.isFile() || st.size > maxBytes) throw new Error(t('err.tooBig'));
   return r;
 }
 
@@ -64,16 +65,16 @@ export function ffmpegBin(): string | null {
 
 export function downloadModel(file: string, onProgress: (p: number) => void): Promise<void> {
   const meta = MODELS.find(m => m.file === file);
-  if (!meta) return Promise.reject(new Error('未知模型'));
+  if (!meta) return Promise.reject(new Error(t('err.unknownModel')));
   fs.mkdirSync(userModelDir(), { recursive: true, mode: 0o700 });
   const dest = path.join(userModelDir(), file);
   const get = (url: string, redirects = 0): Promise<void> => new Promise((resolve, reject) => {
-    if (new URL(url).protocol !== 'https:') { reject(new Error('拒绝非 HTTPS 下载')); return; }
+    if (new URL(url).protocol !== 'https:') { reject(new Error(t('err.httpsOnly'))); return; }
     https.get(url, { headers: { 'User-Agent': 'LycheeWave/0.2' } }, res => {
       if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects < 8) {
         res.resume(); resolve(get(new URL(res.headers.location, url).toString(), redirects + 1)); return;
       }
-      if (res.statusCode !== 200) { res.resume(); reject(new Error('下载失败 HTTP ' + res.statusCode)); return; }
+      if (res.statusCode !== 200) { res.resume(); reject(new Error(t('err.dlFail', { s: String(res.statusCode) }))); return; }
       const total = Number(res.headers['content-length'] || 0); let got = 0;
       const out = fs.createWriteStream(dest + '.part', { mode: 0o600 });
       const h = crypto.createHash('sha256');
@@ -82,7 +83,7 @@ export function downloadModel(file: string, onProgress: (p: number) => void): Pr
       const fail = (e: Error) => { fs.rmSync(dest + '.part', { force: true }); reject(e); };
       out.on('finish', () => {
         const d = h.digest('hex');
-        if (d !== meta.sha256) { fail(new Error('模型校验失败（SHA-256 不匹配），已丢弃')); return; }
+        if (d !== meta.sha256) { fail(new Error(t('err.sha'))); return; }
         fs.renameSync(dest + '.part', dest); resolve();
       });
       out.on('error', fail); res.on('error', fail);
@@ -96,18 +97,18 @@ export interface Segment { from: number; to: number; text: string }
 /** Runs whisper.cpp on a 16 kHz mono WAV and returns timed segments. */
 export function transcribeWav(wav: string, opts: { model: string; language: string }): Promise<Segment[]> {
   const bin = whisperBin();
-  if (!bin) return Promise.reject(new Error('找不到 whisper-cli 转写引擎'));
+  if (!bin) return Promise.reject(new Error(t('err.noEngine')));
   const model = modelPath(opts.model) || MODELS.map(m => modelPath(m.file)).find(Boolean);
-  if (!model) return Promise.reject(new Error('还没有可用的语音模型，请到“设置”下载一个'));
+  if (!model) return Promise.reject(new Error(t('err.noModel')));
   const base = path.join(privateTmp(), 'lw-' + Date.now() + '-' + Math.random().toString(36).slice(2));
   const args = ['-m', model, '-f', wav, '-l', opts.language, '-oj', '-of', base, '-np', '-t', String(Math.max(2, Math.min(8, os.cpus().length - 2)))];
   // Nudges the model toward Simplified Chinese with punctuation.
-  if (opts.language !== 'en') args.push('--prompt', '以下是普通话的句子，使用简体中文和标点。');
+  if (opts.language !== 'en' && opts.language !== 'ja') args.push('--prompt', '以下是普通话的句子，使用简体中文和标点。');
   return new Promise((resolve, reject) => {
     execFile(bin, args, { maxBuffer: 64 * 1024 * 1024 }, (err, _so, se) => {
       try {
         if (err) fs.rmSync(base + '.json', { force: true });
-        if (err) throw new Error('转写失败：' + (se || err.message).toString().slice(-400));
+        if (err) throw new Error(t('err.transcribe', { e: (se || err.message).toString().slice(-400) }));
         const j = JSON.parse(fs.readFileSync(base + '.json', 'utf8'));
         fs.rmSync(base + '.json', { force: true });
         const segs: Segment[] = (j.transcription || []).map((s: any) => ({ from: s.offsets.from, to: s.offsets.to, text: String(s.text).trim() }))
@@ -127,12 +128,12 @@ export function convertWithFfmpeg(input: string): Promise<string> {
     fs.copyFileSync(input, copy); fs.chmodSync(copy, 0o600);
     return Promise.resolve(copy);
   }
-  if (!ff) return Promise.reject(new Error(process.platform === 'win32' ? '无法解码此文件，且未找到 ffmpeg（可用 winget install ffmpeg 安装）' : '无法解码此文件，且未找到 ffmpeg（可用 brew install ffmpeg 安装）'));
+  if (!ff) return Promise.reject(new Error(t('err.noFfmpeg', { cmd: process.platform === 'win32' ? 'winget install ffmpeg' : 'brew install ffmpeg' })));
   const out = path.join(privateTmp(), 'lw-ff-' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.wav');
   // Absolute path required: prevents "-option" or "proto:" style names being treated as flags/URLs.
-  if (!path.isAbsolute(input)) return Promise.reject(new Error('无效的文件路径'));
+  if (!path.isAbsolute(input)) return Promise.reject(new Error(t('err.badPath')));
   return new Promise((res, rej) => execFile(ff, ['-nostdin', '-hide_banner', '-loglevel', 'error', '-y', '-protocol_whitelist', 'file', '-i', 'file:' + input, '-vn', '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', out], { timeout: 30 * 60 * 1000 },
-    (e, _o, se) => { if (e) { fs.rmSync(out, { force: true }); rej(new Error('ffmpeg 转换失败：' + String(se || e.message).slice(-300))); } else res(out); }));
+    (e, _o, se) => { if (e) { fs.rmSync(out, { force: true }); rej(new Error(t('err.ffmpeg', { e: String(se || e.message).slice(-300) }))); } else res(out); }));
 }
 
 export function joinSegments(s: Segment[]): string {

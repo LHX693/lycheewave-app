@@ -1,11 +1,13 @@
 import { app, safeStorage } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
+import { LANGS, t } from '../i18n';
 
 export interface Settings {
   hotkey: string;
   model: string;
-  language: 'auto' | 'zh' | 'en';
+  language: 'auto' | 'zh' | 'en' | 'ja';
+  uiLang: 'system' | 'zh-CN' | 'en' | 'ja';
   autoPaste: boolean;
   restoreClipboard: boolean;
   launchAtLogin: boolean;
@@ -29,7 +31,7 @@ export interface Entry {
 }
 
 export const defaults: Settings = {
-  hotkey: process.platform === 'win32' ? 'Control+Shift+Space' : 'Alt+Space', model: 'ggml-base-q5_1.bin', language: 'auto', autoPaste: true, restoreClipboard: true,
+  hotkey: process.platform === 'win32' ? 'Control+Shift+Space' : 'Alt+Space', model: 'ggml-base-q5_1.bin', language: 'auto', uiLang: 'system', autoPaste: true, restoreClipboard: true,
   launchAtLogin: false, aiPolish: false, aiBaseUrl: '', aiKey: '', aiModel: 'gpt-4o-mini', onboarded: false,
 };
 
@@ -87,15 +89,16 @@ export function cleanSettingsPatch(p: any, knownModels: string[]): Partial<Setti
   for (const k of ['autoPaste', 'restoreClipboard', 'launchAtLogin', 'aiPolish', 'onboarded'] as const) if (typeof p[k] === 'boolean') o[k] = p[k];
   if (typeof p.hotkey === 'string' && /^[A-Za-z0-9+]{1,60}$/.test(p.hotkey)) o.hotkey = p.hotkey;
   if (typeof p.model === 'string' && knownModels.includes(p.model)) o.model = p.model;
-  if (['auto', 'zh', 'en'].includes(p.language)) o.language = p.language;
+  if (['auto', 'zh', 'en', 'ja'].includes(p.language)) o.language = p.language;
+  if (p.uiLang === 'system' || LANGS.includes(p.uiLang)) o.uiLang = p.uiLang;
   if (typeof p.aiModel === 'string') o.aiModel = p.aiModel.trim().slice(0, 100);
   if (typeof p.aiKey === 'string') o.aiKey = p.aiKey.trim().slice(0, 500);
   if (typeof p.aiBaseUrl === 'string') {
     const u = p.aiBaseUrl.trim();
-    if (u) { let url: URL; try { url = new URL(u); } catch { throw new Error('AI 接口地址无效'); }
+    if (u) { let url: URL; try { url = new URL(u); } catch { throw new Error(t('err.aiUrlInvalid')); }
       const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-      if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) throw new Error('AI 接口地址必须使用 HTTPS（本机 localhost 除外）');
-      if (url.username || url.password) throw new Error('接口地址中不要包含账号密码'); }
+      if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) throw new Error(t('err.aiHttps'));
+      if (url.username || url.password) throw new Error(t('err.aiCreds')); }
     o.aiBaseUrl = u.slice(0, 500);
   }
   return o;
