@@ -308,7 +308,7 @@ function App() {
         <div className="grow" />
         <button className="dictate" onClick={() => lw.toggleDictation()}><span className="row0"><Icon n="mic" />{t('nav.dictate')}</span><kbd>{hotkeyLabel(settings.hotkey)}</kbd></button>
         <button className={'nav small ' + (page === 'onboarding' ? 'active' : '')} onClick={() => setPage('onboarding')}><Icon n="shield" s={15} />{t('nav.onboarding')}</button>
-        <div className="ver mono">v0.3.0 · {t('ver.local')}</div>
+        <div className="ver mono">v{__LW_VERSION__} · {t('ver.local')}</div>
       </aside>
       <main>
         {page === 'home' && <Home items={items} settings={settings} />}
