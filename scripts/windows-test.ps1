@@ -78,6 +78,13 @@ foreach ($lang in 'zh-CN', 'en', 'ja') {
     "running OK, window title '$title', $png"
   }
 }
+Step 'GUI diagnostics (Chromium log, --disable-gpu)' {
+  foreach ($v in @(@{ n = 'default'; a = @('--enable-logging=stderr', '--v=0') }, @{ n = 'disable-gpu'; a = @('--enable-logging=stderr', '--v=0', '--disable-gpu') })) {
+    $p = Start-Process $exe -ArgumentList $v.a -RedirectStandardError "$Out/gui-$($v.n).log" -RedirectStandardOutput "$Out/gui-$($v.n).out" -PassThru; Start-Sleep 15
+    Shot "$Out/screenshots/diag-$($v.n).png"; Get-Process LycheeWave -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 3
+    "$($v.n): " + ((Get-Content "$Out/gui-$($v.n).log" -ErrorAction SilentlyContinue | Select-String -Pattern 'CONSOLE|ERROR|GPU|crash' | Select-Object -First 12) -join ' // ')
+  }
+}
 Step 'Portable zip: launch + self-test' {
   $z = "$env:RUNNER_TEMP\lwzip"; Expand-Archive (Get-ChildItem $Rel -Filter '*.zip').FullName $z -Force
   $zexe = Join-Path $z 'LycheeWave.exe'; $p = Start-Process $zexe -PassThru; Start-Sleep 12
